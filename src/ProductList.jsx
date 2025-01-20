@@ -2,8 +2,11 @@ import React, { useState,useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
 import { addItem, removeItem, updateQuantity } from './CartSlice';
+import { useSelector, useDispatch } from 'react-redux';
+
 
 function ProductList() {
+    const dispatch = useDispatch();
     const [showCart, setShowCart] = useState(false); 
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
     const [addedToCart, setAddedToCart] = useState({});
@@ -246,18 +249,26 @@ const handlePlantsClick = (e) => {
     setShowCart(false); // Hide the cart when navigating to About Us
 };
 
-   const handleContinueShopping = (e) => {
-    e.preventDefault();
-    setShowCart(false);
-  };
+const handleContinueShopping = (e) => {
+    // Verifique o evento recebido
+    console.log("Continue Shopping clicked");
+    console.log(e); // Verifique se o evento está sendo passado corretamente
+    if (e && e.preventDefault) {
+        e.preventDefault(); // Previne o comportamento padrão
+    }
+    setShowCart(false); // Oculta o carrinho e exibe a lista de produtos
+};
 
   const handleAddToCart = (product) => {
-    dispatch(addItem(product));
-  };
+  dispatch(addItem(product)); // Dispara a ação para adicionar o produto ao carrinho
+};
 
-  const getTotalQuantity = () => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0); // Soma as quantidades de todos os itens
-  };
+
+  const cartItems = useSelector(state => state.cart.items);
+const getTotalQuantity = () => {
+  return cartItems.reduce((total, item) => total + item.quantity, 0);
+};
+
 
     return (
         <div>
@@ -305,7 +316,7 @@ const handlePlantsClick = (e) => {
         ))}
       </div>
     ) : (
-      <CartItem onContinueShopping={handleContinueShopping} />
+        <CartItem onContinueShopping={handleContinueShopping} />
     )}
   </div>
 );

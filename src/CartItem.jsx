@@ -1,8 +1,8 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { addItem, removeItem, updateQuantity } from './CartSlice';
+import { removeItem, updateQuantity } from './CartSlice';
 import './CartItem.css';
-import { isAction, isPlainObject } from '@reduxjs/toolkit';
+
 
 const CartItem = ({ onContinueShopping }) => {
   const cart = useSelector(state => state.cart.items);
@@ -11,9 +11,27 @@ const CartItem = ({ onContinueShopping }) => {
   // Calculate total amount for all products in the cart
   const calculateTotalAmount = (cartItems) => {
     return cartItems.reduce((total, item) => {
-        return total + item.cost * item.quantity;
-      }, 0);
+      // Remover o símbolo de moeda e garantir que o 'cost' seja um número
+      const cost = parseFloat(item.cost.replace(/[^\d.-]/g, '')); // Remove qualquer coisa que não seja um número, ponto ou hífen
+      const quantity = item.quantity;
+  
+      // Verifica se o 'cost' é válido
+      if (isNaN(cost)) {
+        console.error("Invalid cost value:", item.cost);
+        return total; // Retorna o total sem somar o item inválido
+      }
+  
+      // Verifica se a quantidade é válida
+      if (typeof quantity !== 'number' || isNaN(quantity)) {
+        console.error("Invalid quantity value:", quantity);
+        return total; // Retorna o total sem somar o item inválido
+      }
+  
+      // Soma o total com o valor do item (cost * quantity)
+      return total + (cost * quantity);
+    }, 0);
   };
+  
 
   const handleContinueShopping = (e) => {
     e.preventDefault(); // Prevenir o comportamento padrão do botão (se necessário)
@@ -43,13 +61,29 @@ const CartItem = ({ onContinueShopping }) => {
   };
 
   // Calculate total cost based on quantity for an item
-  const calculateTotalCost = (item) => {
-    return item.cost * item.quantity;
+  const calculateTotalCost = (item) => {  
+    // Remover o símbolo de moeda e garantir que 'cost' seja um número
+  const cost = parseFloat(item.cost.replace(/[^\d.-]/g, '')); // Remove qualquer coisa que não seja número, ponto ou hífen
+
+  // Verifica se 'cost' é válido
+  if (isNaN(cost)) {
+    console.error("Invalid cost value:", item.cost);
+    return 0; // Retorna 0 se o valor for inválido
+  }
+
+  // Verifica se 'quantity' é válida
+  if (typeof item.quantity !== 'number' || isNaN(item.quantity)) {
+    console.error("Invalid quantity value:", item.quantity);
+    return 0; // Retorna 0 se a quantidade for inválida
+  }
+
+  // Retorna o custo total para o item (cost * quantity)
+  return cost * item.quantity;
   };
 
   return (
     <div className="cart-container">
-      <h2 style={{ color: 'black' }}>Total Cart Amount: ${calculateTotalAmount()}</h2>
+      <h2 style={{ color: 'black' }}>Total Cart Amount: ${calculateTotalAmount(cart)}</h2>
       <div>
         {cart.map(item => (
           <div className="cart-item" key={item.name}>
@@ -70,7 +104,13 @@ const CartItem = ({ onContinueShopping }) => {
       </div>
       <div style={{ marginTop: '20px', color: 'black' }} className='total_cart_amount'></div>
       <div className="continue_shopping_btn">
-        <button className="get-started-button" onClick={(e) => handleContinueShopping(e)}>Continue Shopping</button>
+      <button className="get-started-button" onClick={(e) => {
+        console.log("Button clicked!"); // Verifique se o botão está sendo clicado
+        onContinueShopping(e); // Chama a função passada como prop
+      }}>
+        Continue Shopping
+      </button>
+
         <br />
         <button className="get-started-button1" onClick={(e) => handleCheckoutShopping(e)}>Checkout</button>
       </div>
